@@ -42,6 +42,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -284,6 +285,11 @@ fun FlowDebugPanel(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // UI Thread Monitor - Chứng minh Main thread vẫn hoạt động
+            UIThreadMonitor(isLoading = flowEvents.any { it.operator == "onStart" })
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             // Flow Events Log
             if (flowEvents.isEmpty()) {
                 Text(
@@ -303,6 +309,77 @@ fun FlowDebugPanel(
                         FlowEventItem(event)
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun UIThreadMonitor(isLoading: Boolean) {
+    var frameCount by remember { mutableStateOf(0) }
+
+    // Counter liên tục tăng - chứng minh UI thread active
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(16) // ~60 FPS
+            frameCount++
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = if (isLoading) Color(0xFF1B5E20) else Color(0xFF263238),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Animated indicator
+            val alpha = (frameCount % 30) / 30f
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(
+                        color = Color(0xFF4CAF50).copy(alpha = alpha),
+                        shape = androidx.compose.foundation.shape.CircleShape
+                    )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "UI Thread: ACTIVE",
+                color = Color(0xFF4CAF50),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Frames: ",
+                color = Color(0xFF9E9E9E),
+                fontSize = 10.sp,
+                fontFamily = FontFamily.Monospace
+            )
+            Text(
+                text = frameCount.toString(),
+                color = Color(0xFF4CAF50),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+            if (isLoading) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "(API running on BG thread)",
+                    color = Color(0xFF81C784),
+                    fontSize = 9.sp,
+                    fontFamily = FontFamily.Monospace
+                )
             }
         }
     }

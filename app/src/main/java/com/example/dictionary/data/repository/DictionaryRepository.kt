@@ -33,8 +33,7 @@ class DictionaryRepository(
         val startTime = System.currentTimeMillis()
 
         try {
-            // Demo: Thêm delay để thấy rõ async behavior và cancellation
-            // Bạn có thể gõ nhanh để thấy request cũ bị cancel
+            // Thêm delay để thấy rõ async behavior và cancellation
             delay(300) // Giả lập network latency
 
             // Kiểm tra coroutine còn active không (demo cancellation)
